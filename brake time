@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مؤقت الاستراحة</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(120deg, #1b1b2f, #162447, #1f4068, #1b1b2f);
+            background-size: 400% 400%;
+            animation: gradientAnimation 8s infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #ddd;
+            overflow: hidden;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 15px;
+            padding: 50px;
+            box-shadow: 0px 15px 30px rgba(0, 0, 0, 0.5);
+            width: 350px;
+        }
+
+        h1 {
+            font-size: 30px;
+            margin-bottom: 25px;
+            color: #4caf50;
+        }
+
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #4caf50;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: #2d2d2d;
+            color: #ddd;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+
+        .use-btn {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .use-btn:hover {
+            background-color: #3e8e41;
+        }
+
+        .reset-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .history-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #162447;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .history-btn img {
+            width: 14px;
+            height: 14px;
+        }
+
+        .history-panel {
+            position: fixed;
+            top: -350px;
+            right: 20px;
+            background-color: #1b1b2f;
+            border-radius: 10px;
+            padding: 20px;
+            color: #ddd;
+            display: none;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.7);
+            width: 300px;
+            max-height: 300px;
+            overflow-y: auto;
+            transition: top 0.5s ease;
+        }
+
+        .history-panel.open {
+            display: block;
+            top: 80px;
+        }
+
+        .history-panel h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #4caf50;
+        }
+
+        .history-panel ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .history-panel ul li {
+            padding: 5px 0;
+            border-bottom: 1px solid #555;
+        }
+
+        .clear-history-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .clear-history-btn:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>مؤقت الاستراحة</h1>
+        <p>ابدأ استراحتك الآن وتابع الوقت المتبقي.</p>
+        <div id="timer">إجمالي وقت الاستراحة: <span id="total-time">60</span> دقيقة</div>
+        <div id="remaining-time">الوقت المتبقي: 60 دقيقة</div>
+
+        <div class="input-group">
+            <input type="number" id="used-time" placeholder="أدخل الدقائق المستخدمة" />
+            <button class="use-btn" id="use-time">استخدام الوقت</button>
+        </div>
+
+        <button class="reset-btn" id="reset-btn">إعادة تعيين المؤقت</button>
+    </div>
+
+    <button class="history-btn" id="history-btn">
+        <img src="https://cdn-icons-png.flaticon.com/512/84/84123.png" alt="History Icon" />
+        سجل البريك
+    </button>
+
+    <div class="history-panel" id="history-panel">
+        <h2>سجل العمليات</h2>
+        <ul id="history-list"></ul>
+        <button class="clear-history-btn" id="clear-history">مسح السجل</button>
+    </div>
+
+    <script>
+        let totalTime = 60;
+        let remainingTime = totalTime;
+        const totalTimeDisplay = document.getElementById('total-time');
+        const remainingTimeDisplay = document.getElementById('remaining-time');
+        const usedTimeInput = document.getElementById('used-time');
+        const useTimeButton = document.getElementById('use-time');
+        const resetButton = document.getElementById('reset-btn');
+        const historyButton = document.getElementById('history-btn');
+        const historyPanel = document.getElementById('history-panel');
+        const historyList = document.getElementById('history-list');
+        const clearHistoryButton = document.getElementById('clear-history');
+
+        const updateRemainingTimeDisplay = () => {
+            if (remainingTime < 0) {
+                remainingTimeDisplay.style.color = '#f44336';
+                remainingTimeDisplay.textContent = `الوقت المتبقي: ${remainingTime} دقيقة. لا يوجد وقت متبقي اليوم، خلك قاعد على الكرسي!`;
+            } else {
+                remainingTimeDisplay.style.color = '#4caf50';
+                remainingTimeDisplay.textContent = `الوقت المتبقي: ${remainingTime} دقيقة`;
+            }
+        };
+
+        useTimeButton.onclick = () => {
+            const usedTime = parseInt(usedTimeInput.value);
+            if (isNaN(usedTime) || usedTime <= 0) {
+                alert('يرجى إدخال عدد صحيح من الدقائق.');
+                return;
+            }
+            remainingTime -= usedTime;
+            updateRemainingTimeDisplay();
+            const now = new Date().toLocaleString();
+            historyList.innerHTML += `<li>${now}: تم استخدام ${usedTime} دقيقة</li>`;
+            usedTimeInput.value = '';
+        };
+
+        usedTimeInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                useTimeButton.click();
+            }
+        });
+
+        resetButton.onclick = () => {
+            remainingTime = totalTime;
+            updateRemainingTimeDisplay();
+            const now = new Date().toLocaleString();
+            historyList.innerHTML += `<li>${now}: تم إعادة تعيين المؤقت</li>`;
+        };
+
+        historyButton.onclick = () => {
+            historyPanel.classList.toggle('open');
+        };
+
+        clearHistoryButton.onclick = () => {
+            historyList.innerHTML = '';
+        };
+    </script>
+</body>
+</html>
